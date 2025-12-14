@@ -1,0 +1,7 @@
+﻿services:
+  trustdrop:
+    image: trustdrop
+    build:
+      context: .
+      dockerfile: TrustDrop/Dockerfile
+

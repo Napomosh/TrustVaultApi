@@ -1,0 +1,6 @@
+@TrustDrop_HostAddress = http://localhost:5101
+
+GET {{TrustDrop_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

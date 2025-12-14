@@ -1,0 +1,104 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using TrustDrop.Auth.Bl;
+using TrustDrop.Auth.Dal;
+using TrustDrop.Common.Database;
+using TrustDrop.Common.Jwt;
+
+//
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.Development.json", optional: false)
+        .AddEnvironmentVariables()
+        .Build())
+    .CreateLogger();
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
+
+JwtAuth.jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(jwtOptions =>
+    {
+        jwtOptions.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidAudience = JwtAuth.jwtSettings.Audience,
+            ValidIssuer = JwtAuth.jwtSettings.Issuer,
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(JwtAuth.jwtSettings.Key))
+        };
+
+        jwtOptions.MapInboundClaims = false;
+    });
+builder.Services.AddAuthorization();
+
+// Register Entity Framework DbContext with PostgreSQL
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ITransactional, Transactional>();
+builder.Services.AddScoped<IAuthDal, AuthDal>();
+builder.Services.AddScoped<IAuthBl, AuthBl>();
+
+
+var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var ex = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>()?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Unhandled exception on {Path}", context.Request.Path);
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { message = "Internal server error" });
+    });
+});
+
+app.UseSerilogRequestLogging(opts =>
+{
+    opts.EnrichDiagnosticContext = (diag, http) =>
+    {
+        diag.Set("ClientIP", http.Connection.RemoteIpAddress?.ToString() ?? "Unknown");
+        diag.Set("UserAgent", http.Request.Headers.UserAgent.ToString());
+        diag.Set("RequestHost", http.Request.Host.ToString());
+        diag.Set("RequestPath", http.Request.Path);
+        diag.Set("RequestMethod", http.Request.Method);
+        diag.Set("RequestId", http.TraceIdentifier);
+        diag.Set("UserName", http.User?.Identity?.Name ?? "Unknown");
+    };
+});
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Apply migrations automatically in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+// app.UseHttpsRedirection();
+
+app.MapControllers();
+
+app.Run();

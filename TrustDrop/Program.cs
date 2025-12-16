@@ -51,8 +51,34 @@ builder.Services.AddScoped<ITransactional, Transactional>();
 builder.Services.AddScoped<IAuthDal, AuthDal>();
 builder.Services.AddScoped<IAuthBl, AuthBl>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5010")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+// builder.Services.AddSession();
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+// app.UseSession();
+app.UseRouting();
+
+app.UseCors();
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"RAW Authorization Header: {context.Request.Headers.Authorization}");
+    await next();
+});
 
 app.UseExceptionHandler(errorApp =>
 {
@@ -97,8 +123,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// app.UseHttpsRedirection();
-
 app.MapControllers();
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"Request Path: {context.Request.Path}");
+    await next();
+});
 
 app.Run();

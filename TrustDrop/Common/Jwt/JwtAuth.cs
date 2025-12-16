@@ -16,7 +16,7 @@ public static class JwtAuth
         {
             new Claim(JwtRegisteredClaimNames.Jti, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.NameId, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Sub, login),
+            new Claim(JwtRegisteredClaimNames.Name, login),
             // new Claim("tenantId", tenantId.ToString()),
             new Claim("role", role.ToString()),
             new Claim(JwtRegisteredClaimNames.Exp, secToLive.ToString())

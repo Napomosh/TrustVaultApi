@@ -24,7 +24,7 @@ public class AuthController(IAuthBl _authBl) : ControllerBase
             return Ok();
         if (result.Code == ErrorCode.Conflict)
             return Conflict(new JsonResult<bool>(result));
-        return BadRequest();
+        return BadRequest(new JsonResult<bool>(result));
     }
     
     [HttpPost]
@@ -33,8 +33,8 @@ public class AuthController(IAuthBl _authBl) : ControllerBase
     {
         var result = await _authBl.LoginUser(parameters.Login, parameters.Password);
         if (result.IsSuccess)
-            return Ok( new JsonResult<LoginResult>(result));
-        return BadRequest();
+            return Ok(new JsonResult<LoginResult>(result));
+        return BadRequest(new JsonResult<LoginResult>(result));
     }
     
     [HttpGet]

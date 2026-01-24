@@ -2,7 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrustDrop.Auth.Bl;
+using TrustDrop.Auth.Models;
 using TrustDrop.Common.Error;
+using TrustDrop.Common.Jwt;
 using TrustDrop.Common.Result;
 using TrustDrop.Common.Result.Auth;
 using TrustDrop.User.Models;
@@ -32,17 +34,49 @@ public class AuthController(IAuthBl _authBl) : ControllerBase
     public async Task<ActionResult> Login([FromBody] UserViewModel parameters)
     {
         var result = await _authBl.LoginUser(parameters.Login, parameters.Password);
-        if (result.IsSuccess)
-            return Ok(new JsonResult<LoginResult>(result));
-        return BadRequest(new JsonResult<LoginResult>(result));
+        if (!result.IsSuccess || result.Value is null) 
+            return BadRequest(new JsonResult<LoginResult>(result));
+        
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            MaxAge = new TimeSpan(0, 0, JwtAuth.jwtSettings.Expiration)
+        };
+
+        Response.Cookies.Append("authToken", result.Value.JwtToken, cookieOptions);
+        return Ok();
     }
-    
+
+    [HttpGet]
+    [Authorize]
+    [Route("me")]
+    public async Task<ActionResult> Me()
+    {
+        return Ok(new UserAuthInfo
+        {
+            Id = new Guid(User.Claims.First(x => x.Type == JwtRegisteredClaimNames.Jti).Value),
+            Name = User.Claims.First(x => x.Type == JwtRegisteredClaimNames.Name).Value,
+        });
+    }
+
     [HttpGet]
     [Authorize]
     [Route("logout")]
-    public async Task Logout()
+    public async Task<ActionResult> Logout()
     {
-        var userId = User.Claims.First(x => x.Type == JwtRegisteredClaimNames.NameId).Value;
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax
+        };
+        Response.Cookies.Delete("authToken", cookieOptions);
+
+        var userId = User.Claims.First(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
         await _authBl.LogoutUser(Guid.Parse(userId));
+
+        return Ok();
     }
 }

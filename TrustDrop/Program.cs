@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,18 +33,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         jwtOptions.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidAudience = JwtAuth.jwtSettings.Audience,
             ValidIssuer = JwtAuth.jwtSettings.Issuer,
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(JwtAuth.jwtSettings.Key))
+            ValidateAudience = true,
+            ValidAudience = JwtAuth.jwtSettings.Audience,
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(JwtAuth.jwtSettings.Key)),
+            ValidateIssuerSigningKey = true,
+            ClockSkew = TimeSpan.Zero
         };
-
-        jwtOptions.MapInboundClaims = false;
+        
+        jwtOptions.Events = new JwtBearerEvents {
+            OnMessageReceived = context => {
+                context.Token = context.Request.Cookies["authToken"];
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 
-// Register Entity Framework DbContext with PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -58,7 +66,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:5010")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -73,12 +82,6 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors();
-
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"RAW Authorization Header: {context.Request.Headers.Authorization}");
-    await next();
-});
 
 app.UseExceptionHandler(errorApp =>
 {

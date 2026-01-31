@@ -42,11 +42,14 @@ public class AuthController(IAuthBl _authBl) : ControllerBase
             HttpOnly = true,
             Secure = false,
             SameSite = SameSiteMode.Lax,
-            MaxAge = new TimeSpan(0, 0, JwtAuth.jwtSettings.Expiration)
+            MaxAge = new TimeSpan(0, 0, result.Value.ExpireAt.Second - DateTime.UtcNow.Second)
         };
 
-        Response.Cookies.Append("authToken", result.Value.JwtToken, cookieOptions);
-        return Ok();
+        Response.Cookies.Append("refreshToken", result.Value.RefreshToken, cookieOptions);
+        return Ok(new 
+        {
+            value = new { token = result.Value.JwtToken },
+        });
     }
 
     [HttpGet]

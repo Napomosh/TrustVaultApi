@@ -98,7 +98,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
         {
             JwtToken = jwt,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddSeconds(JwtAuth.jwtSettings.Expiration),
+            ExpireAt = DateTime.UtcNow.AddSeconds(JwtAuth.jwtSettings.Expiration),
             UserId = existedUser.Id,
             Username = existedUser.Username,
             Role = existedUser.Role
@@ -137,7 +137,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             {
                 JwtToken = newJwt,
                 RefreshToken = newRefreshToken,
-                ExpiresAt = DateTime.UtcNow.AddSeconds(JwtAuth.jwtSettings.Expiration),
+                ExpireAt = DateTime.UtcNow.AddSeconds(JwtAuth.jwtSettings.Expiration),
                 UserId = tokenModel.User.Id,
                 Username = tokenModel.User.Username,
                 Role = tokenModel.User.Role

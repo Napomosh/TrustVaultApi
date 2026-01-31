@@ -148,7 +148,7 @@ public class AuthTest : BaseTest
         Assert.That(result.Value!.JwtToken, Is.Not.Empty);
         Assert.That(result.Value.RefreshToken, Is.Not.Empty);
         Assert.That(result.Value.Username, Is.EqualTo(login));
-        Assert.That(result.Value.ExpiresAt, Is.GreaterThan(DateTime.UtcNow));
+        Assert.That(result.Value.ExpireAt, Is.GreaterThan(DateTime.UtcNow));
     }
 
     [Test]

@@ -6,3 +6,5 @@ riderModule.iml
 logs/
 .idea/
 appsettings.json
+*.user
+.DS_Store

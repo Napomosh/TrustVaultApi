@@ -16,7 +16,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
     private readonly IAuthDal _authDal = _authDal;
     private readonly ILogger<AuthBl> _log = _log;
     private readonly ITransactional _transactional = _transactional;
-    
+
     public async Task<Result<bool>> RegisterUser(string login, string password, string email)
     {
         if (await _authDal.GetUser(login) != null)
@@ -27,7 +27,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
 
         var salt = RandomNumberGenerator.GetBytes(16);
         var hashedPass = PasswordHasher.HashPassword(password, salt);
-        
+
         var userModel = new UserModel
         {
             Username = login.Trim(),
@@ -35,7 +35,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             Salt = salt,
             Email = email.Trim().ToLower(),
         };
-        
+
         try
         {
             await _authDal.CreateUser(userModel);
@@ -48,18 +48,18 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             switch (errorMessage)
             {
                 case UserModel.INDEX_USER_USERNAME_UNIQUE:
-                {
-                    _log.LogWarning(AuthError.USER_NAME_ALREADY_EXIST + " {login}", login);
-                    return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_NAME_ALREADY_EXIST);
-                }
+                    {
+                        _log.LogWarning(AuthError.USER_NAME_ALREADY_EXIST + " {login}", login);
+                        return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_NAME_ALREADY_EXIST);
+                    }
                 case UserModel.INDEX_USER_EMAIL_UNIQUE:
-                {
-                    _log.LogWarning(AuthError.USER_EMAIL_ALREADY_EXIST + " { mail}", email);
-                    return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_EMAIL_ALREADY_EXIST);
-                }
+                    {
+                        _log.LogWarning(AuthError.USER_EMAIL_ALREADY_EXIST + " { mail}", email);
+                        return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_EMAIL_ALREADY_EXIST);
+                    }
             }
         }
-        
+
         _log.LogWarning(AuthError.USER_UNKNOWN_ERROR + " {userName}", userModel.Username);
         return Result<bool>.Failure(ErrorCode.Unknown, AuthError.USER_UNKNOWN_ERROR);
     }
@@ -87,13 +87,13 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             _log.LogWarning(AuthError.USER_WRONG_CREDENTIALS + " {login}", login);
             return Result<LoginResult>.Failure(ErrorCode.Unauthorized, AuthError.USER_WRONG_CREDENTIALS);
         }
-        
+
         existedUser.LastLogin = DateTime.UtcNow;
         await _authDal.UpdateUser(existedUser);
 
         var jwt = JwtAuth.GenerateJwtToken(existedUser.Id, existedUser.Role, existedUser.Username, JwtAuth.jwtSettings.Expiration);
         var refreshToken = await _authDal.CreateRefreshToken(existedUser.Id, Guid.Empty);
-        
+
         var loginResult = new LoginResult
         {
             JwtToken = jwt,
@@ -132,7 +132,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             var newRefreshToken = await _authDal.CreateRefreshToken(tokenModel.User.Id, Guid.Empty);
             await _authDal.RevokeRefreshToken(tokenModel.Id);
             await transaction.CommitAsync();
-            
+
             var loginResult = new LoginResult
             {
                 JwtToken = newJwt,
@@ -173,7 +173,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
         }
         else
         {
-            await _authDal.RevokeAllRefreshTokens(userId, Guid.Empty);   
+            await _authDal.RevokeAllRefreshTokens(userId, Guid.Empty);
         }
     }
 }

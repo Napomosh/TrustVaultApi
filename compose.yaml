@@ -1,7 +1,23 @@
 ﻿services:
-  trustdrop:
-    image: trustdrop
+  db:
+    image: postgres:latest
+    container_name: trustvault-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1
+      POSTGRES_DB: db_trust_drop
+    ports:
+      - "5431:5432"
+
+  api:
     build:
       context: .
-      dockerfile: TrustDrop/Dockerfile
-
+      dockerfile: Dockerfile
+    container_name: trustvault-api
+    depends_on:
+      - db
+    ports:
+      - "5010:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=db_trust_drop;Username=root;Password=1
+      - ASPNETCORE_ENVIRONMENT=Development

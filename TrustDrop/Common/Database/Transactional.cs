@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace TrustDrop.Common.Database;
 
-public class Transactional(AppDbContext _dbContext) : ITransactional
+public class Transactional(AppDbContext dbContext) : ITransactional
 {
-    private readonly AppDbContext _dbContext = _dbContext;
+    private readonly AppDbContext _dbContext = dbContext;
     
     public async Task<IDbContextTransaction> BeginTransactionScopeAsync()
     {

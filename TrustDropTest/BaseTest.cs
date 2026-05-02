@@ -16,7 +16,7 @@ public abstract class BaseTest
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        JwtAuth.jwtSettings = new JwtSettings
+        JwtAuth.JwtSettings = new JwtSettingsType
         {
             Key = "test-secret-key-with-at-least-32-characters-for-HS256",
             Issuer = "test-issuer",

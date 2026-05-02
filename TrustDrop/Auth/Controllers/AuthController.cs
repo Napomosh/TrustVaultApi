@@ -13,9 +13,9 @@ namespace TrustDrop.Auth.Controllers;
 
 [Route("api")]
 [ApiController]
-public class AuthController(IAuthBl _authBl) : ControllerBase
+public class AuthController(IAuthBl authBl) : ControllerBase
 {
-    private readonly IAuthBl _authBl = _authBl;
+    private readonly IAuthBl _authBl = authBl;
     
     [HttpPost]
     [Route("register")]
@@ -42,7 +42,42 @@ public class AuthController(IAuthBl _authBl) : ControllerBase
             HttpOnly = true,
             Secure = false,
             SameSite = SameSiteMode.Lax,
-            MaxAge = new TimeSpan(0, 0, result.Value.ExpireAt.Second - DateTime.UtcNow.Second)
+            MaxAge = TimeSpan.FromDays(14)
+        };
+
+        Response.Cookies.Append("refreshToken", result.Value.RefreshToken, cookieOptions);
+        return Ok(new 
+        {
+            value = new { token = result.Value.JwtToken },
+        });
+    }
+
+    [HttpPost]
+    [Route("refresh")]
+    public async Task<ActionResult> Refresh()
+    {
+        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+            return Unauthorized();
+
+        var result = await _authBl.RefreshLoginAccess(refreshToken);
+        if (!result.IsSuccess || result.Value is null) 
+        {
+            var deleteCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax
+            };
+            Response.Cookies.Delete("refreshToken", deleteCookieOptions);
+            return Unauthorized(new JsonResult<LoginResult>(result));
+        }
+        
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
+            MaxAge = TimeSpan.FromDays(14)
         };
 
         Response.Cookies.Append("refreshToken", result.Value.RefreshToken, cookieOptions);
@@ -75,7 +110,7 @@ public class AuthController(IAuthBl _authBl) : ControllerBase
             Secure = false,
             SameSite = SameSiteMode.Lax
         };
-        Response.Cookies.Delete("authToken", cookieOptions);
+        Response.Cookies.Delete("refreshToken", cookieOptions);
 
         var userId = User.Claims.First(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
         await _authBl.LogoutUser(Guid.Parse(userId));

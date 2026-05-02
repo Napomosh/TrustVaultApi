@@ -8,9 +8,9 @@ using TrustDrop.User.Models;
 
 namespace TrustDrop.Auth.Dal;
 
-public class AuthDal(AppDbContext _dbContext) : IAuthDal
+public class AuthDal(AppDbContext dbContext) : IAuthDal
 {
-    private readonly AppDbContext _dbContext = _dbContext;
+    private readonly AppDbContext _dbContext = dbContext;
     
     public async Task CreateUser(UserModel userModel)
     { 
@@ -75,7 +75,7 @@ public class AuthDal(AppDbContext _dbContext) : IAuthDal
 
     public Task<RefreshTokenModel?> GetRefreshToken(byte[] tokenHash)
     {
-        return _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.TokenHash == tokenHash);
+        return _dbContext.RefreshTokens.Include(r => r.User).FirstOrDefaultAsync(r => r.TokenHash == tokenHash);
     }
 
     public async Task<RefreshTokenModel?> GetRefreshToken(Guid tokenId)

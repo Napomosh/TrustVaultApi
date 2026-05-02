@@ -5,6 +5,8 @@ riderModule.iml
 /_ReSharper.Caches/
 logs/
 .idea/
+.vscode/
+.agents/
 appsettings.json
 *.user
 .DS_Store

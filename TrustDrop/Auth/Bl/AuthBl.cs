@@ -11,11 +11,11 @@ using TrustDrop.User.Models;
 
 namespace TrustDrop.Auth.Bl;
 
-public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _transactional) : IAuthBl
+public class AuthBl(IAuthDal authDal, ILogger<AuthBl> log, ITransactional transactional) : IAuthBl
 {
-    private readonly IAuthDal _authDal = _authDal;
-    private readonly ILogger<AuthBl> _log = _log;
-    private readonly ITransactional _transactional = _transactional;
+    private readonly IAuthDal _authDal = authDal;
+    private readonly ILogger<AuthBl> _log = log;
+    private readonly ITransactional _transactional = transactional;
 
     public async Task<Result<bool>> RegisterUser(string login, string password, string email)
     {
@@ -91,14 +91,14 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
         existedUser.LastLogin = DateTime.UtcNow;
         await _authDal.UpdateUser(existedUser);
 
-        var jwt = JwtAuth.GenerateJwtToken(existedUser.Id, existedUser.Role, existedUser.Username, JwtAuth.jwtSettings.Expiration);
+        var jwt = JwtAuth.GenerateJwtToken(existedUser.Id, existedUser.Role, existedUser.Username, JwtAuth.JwtSettings.Expiration);
         var refreshToken = await _authDal.CreateRefreshToken(existedUser.Id, Guid.Empty);
 
         var loginResult = new LoginResult
         {
             JwtToken = jwt,
             RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddSeconds(JwtAuth.jwtSettings.Expiration),
+            ExpireAt = DateTime.UtcNow.AddSeconds(JwtAuth.JwtSettings.Expiration),
             UserId = existedUser.Id,
             Username = existedUser.Username,
             Role = existedUser.Role
@@ -111,7 +111,15 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
     {
         var refreshTokenHash = SHA256.HashData(Convert.FromBase64String(refreshToken));
         var tokenModel = await _authDal.GetRefreshToken(refreshTokenHash);
-        if (tokenModel is null || tokenModel.IsExpired || tokenModel.IsRevoked)
+        
+        if (tokenModel is not null && tokenModel.IsRevoked)
+        {
+            _log.LogWarning("Refresh token reuse detected for UserId {UserId}. Revoking all tokens.", tokenModel.UserId);
+            await _authDal.RevokeAllRefreshTokens(tokenModel.UserId, Guid.Empty);
+            return Result<LoginResult>.Failure(ErrorCode.NotFound, AuthError.USER_REFRESH_TOKEN_IS_INVALID);
+        }
+
+        if (tokenModel is null || tokenModel.IsExpired)
         {
             _log.LogWarning(AuthError.USER_REFRESH_TOKEN_IS_INVALID + $" UserId is {tokenModel?.UserId}");
             return Result<LoginResult>.Failure(ErrorCode.NotFound, AuthError.USER_REFRESH_TOKEN_IS_INVALID);
@@ -123,7 +131,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             return Result<LoginResult>.Failure(ErrorCode.NotFound, AuthError.USER_REFRESH_TOKEN_IS_INVALID);
         }
         var newJwt = JwtAuth.GenerateJwtToken(tokenModel.User.Id, tokenModel.User.Role
-                            , tokenModel.User.Username, JwtAuth.jwtSettings.Expiration);
+                            , tokenModel.User.Username, JwtAuth.JwtSettings.Expiration);
 
         try
         {
@@ -137,7 +145,7 @@ public class AuthBl(IAuthDal _authDal, ILogger<AuthBl> _log, ITransactional _tra
             {
                 JwtToken = newJwt,
                 RefreshToken = newRefreshToken,
-                ExpiresAt = DateTime.UtcNow.AddSeconds(JwtAuth.jwtSettings.Expiration),
+                ExpireAt = DateTime.UtcNow.AddSeconds(JwtAuth.JwtSettings.Expiration),
                 UserId = tokenModel.User.Id,
                 Username = tokenModel.User.Username,
                 Role = tokenModel.User.Role

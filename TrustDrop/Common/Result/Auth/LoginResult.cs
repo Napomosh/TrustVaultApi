@@ -6,7 +6,7 @@ public class LoginResult
 {
     public string JwtToken { get; init; } = string.Empty;
     public string RefreshToken { get; init; } = string.Empty;
-    public DateTime ExpiresAt { get; init; }
+    public DateTime ExpireAt { get; init; }
     public Guid UserId { get; init; }
     public string Username { get; init; } = string.Empty;
     public UserRole Role { get; init; } 

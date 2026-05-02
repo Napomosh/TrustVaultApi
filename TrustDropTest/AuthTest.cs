@@ -31,6 +31,10 @@ public class AuthTest : BaseTest
         authDal = new AuthDal(dbContext);
         mockLogger = new Mock<ILogger<AuthBl>>();
         mockTransactional = new Mock<ITransactional>();
+        
+        var mockDbTransaction = new Mock<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction>();
+        mockTransactional.Setup(x => x.BeginTransactionScopeAsync())
+            .ReturnsAsync(mockDbTransaction.Object);
 
         authBl = new AuthBl(authDal, mockLogger.Object, mockTransactional.Object);
         
@@ -148,7 +152,7 @@ public class AuthTest : BaseTest
         Assert.That(result.Value!.JwtToken, Is.Not.Empty);
         Assert.That(result.Value.RefreshToken, Is.Not.Empty);
         Assert.That(result.Value.Username, Is.EqualTo(login));
-        Assert.That(result.Value.ExpiresAt, Is.GreaterThan(DateTime.UtcNow));
+        Assert.That(result.Value.ExpireAt, Is.GreaterThan(DateTime.UtcNow));
     }
 
     [Test]
@@ -275,6 +279,78 @@ public class AuthTest : BaseTest
         // Verify refresh token exists in database
         var refreshTokenCount = await dbContext.RefreshTokens.CountAsync();
         Assert.That(refreshTokenCount, Is.EqualTo(1));
+    }
+
+    #endregion
+
+    #region Refresh Tests
+
+    [Test]
+    public async Task RefreshLoginAccess_WithValidToken_ShouldSucceed()
+    {
+        // Arrange
+        var login = "refreshuser";
+        var password = "testPassword123";
+        await authBl.RegisterUser(login, password, "refresh@example.com");
+        var loginResult = await authBl.LoginUser(login, password);
+        var refreshToken = loginResult.Value!.RefreshToken;
+
+        // Act
+        var result = await authBl.RefreshLoginAccess(refreshToken);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.True);
+        Assert.That(result.Value, Is.Not.Null);
+        Assert.That(result.Value!.JwtToken, Is.Not.Empty);
+        Assert.That(result.Value.RefreshToken, Is.Not.Empty);
+        Assert.That(result.Value.RefreshToken, Is.Not.EqualTo(refreshToken)); // Should issue a new token
+    }
+
+    [Test]
+    public async Task RefreshLoginAccess_WithRevokedToken_ShouldRevokeAllTokensAndReturnNotFound()
+    {
+        // Arrange
+        var login = "revokeduser";
+        var password = "testPassword123";
+        await authBl.RegisterUser(login, password, "revoked@example.com");
+        var loginResult1 = await authBl.LoginUser(login, password);
+        var refreshToken1 = loginResult1.Value!.RefreshToken;
+
+        // Simulate using the refresh token successfully (this revokes refreshToken1)
+        var refreshResult = await authBl.RefreshLoginAccess(refreshToken1);
+        Assert.That(refreshResult.IsSuccess, Is.True);
+
+        // Let's create another active session just to be sure
+        var loginResult2 = await authBl.LoginUser(login, password);
+
+        // Act - malicious actor tries to reuse the old, revoked token
+        var result = await authBl.RefreshLoginAccess(refreshToken1);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Code, Is.EqualTo(ErrorCode.NotFound));
+
+        // Verify ALL refresh tokens for the user are now revoked
+        var user = await authDal.GetUser(login);
+        var activeTokens = await dbContext.RefreshTokens
+            .Where(r => r.UserId == user!.Id && r.RevokedAt == null)
+            .ToListAsync();
+
+        Assert.That(activeTokens, Is.Empty);
+    }
+
+    [Test]
+    public async Task RefreshLoginAccess_WithInvalidToken_ShouldReturnNotFound()
+    {
+        // Arrange
+        var invalidToken = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+
+        // Act
+        var result = await authBl.RefreshLoginAccess(invalidToken);
+
+        // Assert
+        Assert.That(result.IsSuccess, Is.False);
+        Assert.That(result.Code, Is.EqualTo(ErrorCode.NotFound));
     }
 
     #endregion

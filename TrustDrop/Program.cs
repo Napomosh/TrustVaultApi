@@ -20,34 +20,28 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog();
 
-JwtAuth.jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+JwtAuth.JwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettingsType>()!;
 
 // Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(jwtOptions =>
+    .AddJwtBearer(options =>
     {
-        jwtOptions.TokenValidationParameters = new TokenValidationParameters
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = JwtAuth.jwtSettings.Issuer,
+            ValidIssuer = JwtAuth.JwtSettings.Issuer,
             ValidateAudience = true,
-            ValidAudience = JwtAuth.jwtSettings.Audience,
+            ValidAudience = JwtAuth.JwtSettings.Audience,
             ValidateLifetime = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(JwtAuth.jwtSettings.Key)),
+                Encoding.UTF8.GetBytes(JwtAuth.JwtSettings.Key)),
             ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.Zero
-        };
-        
-        jwtOptions.Events = new JwtBearerEvents {
-            OnMessageReceived = context => {
-                context.Token = context.Request.Cookies["authToken"];
-                return Task.CompletedTask;
-            }
+            ClockSkew = TimeSpan.Zero 
         };
     });
 builder.Services.AddAuthorization();

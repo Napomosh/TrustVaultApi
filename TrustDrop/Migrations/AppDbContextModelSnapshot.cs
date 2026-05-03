@@ -77,7 +77,7 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("access_token");
+                    b.ToTable("access_token", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.Audit.Models.AuditModel", b =>
@@ -142,7 +142,7 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("audit");
+                    b.ToTable("audit", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.Auth.Models.RefreshTokenModel", b =>
@@ -195,7 +195,7 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex(new[] { "UserId", "TenantId" }, "index_refresh_token_user_tenant");
 
-                    b.ToTable("refresh_token");
+                    b.ToTable("refresh_token", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.Document.Models.DocumentModel", b =>
@@ -279,7 +279,7 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("document");
+                    b.ToTable("document", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.Policy.Models.PolicyModel", b =>
@@ -328,7 +328,7 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("policy");
+                    b.ToTable("policy", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.Tenant.Models.TenantModel", b =>
@@ -364,7 +364,7 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("tenant");
+                    b.ToTable("tenant", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.User.Models.UserModel", b =>
@@ -426,7 +426,7 @@ namespace TrustDrop.Migrations
                     b.HasIndex(new[] { "Username" }, "index_user_username_unique")
                         .IsUnique();
 
-                    b.ToTable("user");
+                    b.ToTable("user", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.User.Models.UserTenantRoleModel", b =>
@@ -467,7 +467,7 @@ namespace TrustDrop.Migrations
                     b.HasIndex("UserId", "TenantId")
                         .IsUnique();
 
-                    b.ToTable("user_tenant_role");
+                    b.ToTable("user_tenant_role", (string)null);
                 });
 
             modelBuilder.Entity("TrustDrop.AccessToken.Models.AccessTokenModel", b =>

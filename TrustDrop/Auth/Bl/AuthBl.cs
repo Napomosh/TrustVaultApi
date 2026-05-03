@@ -47,16 +47,16 @@ public class AuthBl(IAuthDal authDal, ILogger<AuthBl> log, ITransactional transa
             var errorMessage = ex.Message;
             switch (errorMessage)
             {
-                case UserModel.INDEX_USER_USERNAME_UNIQUE:
-                    {
-                        _log.LogWarning(AuthError.USER_NAME_ALREADY_EXIST + " {login}", login);
-                        return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_NAME_ALREADY_EXIST);
-                    }
-                case UserModel.INDEX_USER_EMAIL_UNIQUE:
-                    {
-                        _log.LogWarning(AuthError.USER_EMAIL_ALREADY_EXIST + " { mail}", email);
-                        return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_EMAIL_ALREADY_EXIST);
-                    }
+                case DbIndexes.INDEX_USER_USERNAME_UNIQUE:
+                {
+                    _log.LogWarning(AuthError.USER_NAME_ALREADY_EXIST + " {login}", login);
+                    return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_NAME_ALREADY_EXIST);
+                }
+                case DbIndexes.INDEX_USER_EMAIL_UNIQUE:
+                {
+                    _log.LogWarning(AuthError.USER_EMAIL_ALREADY_EXIST + " { mail}", email);
+                    return Result<bool>.Failure(ErrorCode.Conflict, AuthError.USER_EMAIL_ALREADY_EXIST);
+                }
             }
         }
 

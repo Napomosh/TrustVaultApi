@@ -39,6 +39,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -71,23 +72,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             deletedAtProp?.SetColumnName($"{tableName}_deleted_at");
         }
         
-        modelBuilder.Entity<AuditModel>()
-            .HasOne(a => a.Tenant)
-            .WithMany()
-            .HasForeignKey(a => a.TenantId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<AuditModel>()
-            .HasOne(a => a.Document)
-            .WithMany()
-            .HasForeignKey(a => a.DocumentId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<AuditModel>()
-            .HasOne(a => a.Actor)
-            .WithMany()
-            .HasForeignKey(a => a.ActorId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

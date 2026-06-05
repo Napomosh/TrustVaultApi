@@ -29,11 +29,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("access_token_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("access_token_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("access_token_deleted_at");
 
@@ -63,7 +63,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("access_token_ttl_seconds");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("access_token_updated_at");
 
@@ -97,11 +97,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("audit_actor_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("audit_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("audit_deleted_at");
 
@@ -124,7 +124,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("audit_tenant_id");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("audit_updated_at");
 
@@ -152,11 +152,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("refresh_token_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("refresh_token_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("refresh_token_deleted_at");
 
@@ -178,7 +178,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("bytea")
                         .HasColumnName("refresh_token_hash");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("refresh_token_updated_at");
 
@@ -190,10 +190,12 @@ namespace TrustDrop.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.HasIndex(new[] { "TokenHash" }, "index_refresh_token_token_hash_unique")
-                        .IsUnique();
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("index_refresh_token_token_hash_unique");
 
-                    b.HasIndex(new[] { "UserId", "TenantId" }, "index_refresh_token_user_tenant");
+                    b.HasIndex("UserId", "TenantId")
+                        .HasDatabaseName("index_refresh_token_user_tenant");
 
                     b.ToTable("refresh_token", (string)null);
                 });
@@ -211,11 +213,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("document_content_type");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("document_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("document_deleted_at");
 
@@ -267,7 +269,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("document_tenant_id");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("document_updated_at");
 
@@ -298,11 +300,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("policy_allowed_user_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("policy_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("policy_deleted_at");
 
@@ -314,7 +316,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("policy_tenant_id");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("policy_updated_at");
 
@@ -338,11 +340,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("tenant_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("tenant_deleted_at");
 
@@ -356,7 +358,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_owner_id");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("tenant_updated_at");
 
@@ -374,11 +376,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("user_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("user_deleted_at");
 
@@ -408,7 +410,7 @@ namespace TrustDrop.Migrations
                         .HasColumnType("bytea")
                         .HasColumnName("user_salt");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("user_updated_at");
 
@@ -420,11 +422,13 @@ namespace TrustDrop.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex(new[] { "Email" }, "index_user_email_unique")
-                        .IsUnique();
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("index_user_email_unique");
 
-                    b.HasIndex(new[] { "Username" }, "index_user_username_unique")
-                        .IsUnique();
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("index_user_username_unique");
 
                     b.ToTable("user", (string)null);
                 });
@@ -436,11 +440,11 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_tenant_role_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("user_tenant_role_created_at");
 
-                    b.Property<DateTime?>("DeletedAt")
+                    b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("user_tenant_role_deleted_at");
 
@@ -452,7 +456,10 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_tenant_role_tenant_id");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<Guid?>("TenantModelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("user_tenant_role_updated_at");
 
@@ -460,9 +467,16 @@ namespace TrustDrop.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_tenant_role_user_id");
 
+                    b.Property<Guid?>("UserModelId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantModelId");
+
+                    b.HasIndex("UserModelId");
 
                     b.HasIndex("UserId", "TenantId")
                         .IsUnique();
@@ -475,13 +489,13 @@ namespace TrustDrop.Migrations
                     b.HasOne("TrustDrop.Document.Models.DocumentModel", "Document")
                         .WithMany()
                         .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TrustDrop.Tenant.Models.TenantModel", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Document");
@@ -520,12 +534,13 @@ namespace TrustDrop.Migrations
                 {
                     b.HasOne("TrustDrop.Tenant.Models.TenantModel", "Tenant")
                         .WithMany()
-                        .HasForeignKey("TenantId");
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("TrustDrop.User.Models.UserModel", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Tenant");
@@ -538,19 +553,19 @@ namespace TrustDrop.Migrations
                     b.HasOne("TrustDrop.User.Models.UserModel", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TrustDrop.Policy.Models.PolicyModel", "Policy")
                         .WithMany()
                         .HasForeignKey("PolicyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TrustDrop.Tenant.Models.TenantModel", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Owner");
@@ -564,12 +579,13 @@ namespace TrustDrop.Migrations
                 {
                     b.HasOne("TrustDrop.User.Models.UserModel", "AllowedUser")
                         .WithMany()
-                        .HasForeignKey("AllowedUserId");
+                        .HasForeignKey("AllowedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("TrustDrop.Tenant.Models.TenantModel", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("AllowedUser");
@@ -582,7 +598,7 @@ namespace TrustDrop.Migrations
                     b.HasOne("TrustDrop.User.Models.UserModel", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Owner");
@@ -593,18 +609,38 @@ namespace TrustDrop.Migrations
                     b.HasOne("TrustDrop.Tenant.Models.TenantModel", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("TrustDrop.Tenant.Models.TenantModel", null)
+                        .WithMany("UserTenantRoles")
+                        .HasForeignKey("TenantModelId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("TrustDrop.User.Models.UserModel", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("TrustDrop.User.Models.UserModel", null)
+                        .WithMany("UserTenantRoles")
+                        .HasForeignKey("UserModelId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Tenant");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TrustDrop.Tenant.Models.TenantModel", b =>
+                {
+                    b.Navigation("UserTenantRoles");
+                });
+
+            modelBuilder.Entity("TrustDrop.User.Models.UserModel", b =>
+                {
+                    b.Navigation("UserTenantRoles");
                 });
 #pragma warning restore 612, 618
         }

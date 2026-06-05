@@ -11,4 +11,6 @@ public class UserModel : BaseEntity
     public byte[] Salt { get; set; } = [];
     public UserRole Role { get; set; } = UserRole.User;
     public DateTime? LastLogin { get; set; }
+
+    public ICollection<UserTenantRoleModel> UserTenantRoles { get; set; } = [];
 }

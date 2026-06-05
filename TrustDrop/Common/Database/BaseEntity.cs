@@ -10,11 +10,15 @@ public class BaseEntity
     
     [Key]
     public Guid Id { get; set; }
-    
+
     [Required]
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset? CreatedAt
+    {
+        get;
+        set => field ??= value;
+    }
     
-    public DateTime? UpdatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
     
-    public DateTime? DeletedAt { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
 }

@@ -19,7 +19,8 @@ public class UserTenantRoleModelConfiguration : IEntityTypeConfiguration<UserTen
 
         builder.HasOne(u => u.User)
             .WithMany()
-            .HasForeignKey(u => u.UserId);
+            .HasForeignKey(u => u.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(u => u.TenantId)
             .HasColumnName("user_tenant_role_tenant_id")
@@ -27,7 +28,8 @@ public class UserTenantRoleModelConfiguration : IEntityTypeConfiguration<UserTen
 
         builder.HasOne(u => u.Tenant)
             .WithMany()
-            .HasForeignKey(u => u.TenantId);
+            .HasForeignKey(u => u.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(u => u.Role)
             .HasColumnName("user_tenant_role_role")

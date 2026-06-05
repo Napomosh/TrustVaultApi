@@ -9,4 +9,6 @@ public class TenantModel : BaseEntity
 
     public required Guid OwnerId { get; set; }
     public required UserModel Owner { get; set; } 
+    
+    public ICollection<UserTenantRoleModel> UserTenantRoles { get; set; } = [];
 }

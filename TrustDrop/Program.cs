@@ -7,6 +7,8 @@ using TrustDrop.Auth.Bl;
 using TrustDrop.Auth.Dal;
 using TrustDrop.Common.Database;
 using TrustDrop.Common.Jwt;
+using TrustDrop.User.Bl;
+using TrustDrop.User.Dal;
 
 //
 Log.Logger = new LoggerConfiguration()
@@ -52,6 +54,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ITransactional, Transactional>();
 builder.Services.AddScoped<IAuthDal, AuthDal>();
 builder.Services.AddScoped<IAuthBl, AuthBl>();
+builder.Services.AddScoped<IUserInfoDal, UserInfoDal>();
+builder.Services.AddScoped<IUserInfoBl, UserInfoBl>();
 
 builder.Services.AddCors(options =>
 {

@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrustDrop.Auth.Bl;
 using TrustDrop.Auth.Models;
-using TrustDrop.Common.Error;
-using TrustDrop.Common.Jwt;
 using TrustDrop.Common.Result;
 using TrustDrop.Common.Result.Auth;
 using TrustDrop.User.Models;
@@ -90,7 +88,7 @@ public class AuthController(IAuthBl authBl) : ControllerBase
     [HttpGet]
     [Authorize]
     [Route("me")]
-    public async Task<ActionResult> Me()
+    public ActionResult Me()
     {
         return Ok(new UserAuthInfo
         {

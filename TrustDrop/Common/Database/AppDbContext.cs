@@ -41,37 +41,49 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            if (!typeof(BaseEntity).IsAssignableFrom(entityType.ClrType)) 
-                continue;
-            
-            var parameter = Expression.Parameter(entityType.ClrType, "e");
-            var deletedAtProp = Expression.Property(parameter, nameof(BaseEntity.DeletedAt));
-            var filter = Expression.Lambda(
-                Expression.Equal(deletedAtProp, Expression.Constant(null)),
-                parameter
-            );
-            modelBuilder.Entity(entityType.ClrType).HasQueryFilter(filter);
-        }
-
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            var tableName = entity.GetTableName();
-            
-            var idProp = entity.FindProperty(nameof(BaseEntity.Id));
-            idProp?.SetColumnName($"{tableName}_id");
+            #region DisableCascadeDelete
+                var cascadeFKs = entity.GetForeignKeys()
+                    .Where(fk => fk is { IsOwnership: false });
 
-            var createdAtProp = entity.FindProperty(nameof(BaseEntity.CreatedAt));
-            createdAtProp?.SetColumnName($"{tableName}_created_at");
-
-            var updatedAtProp = entity.FindProperty(nameof(BaseEntity.UpdatedAt));
-            updatedAtProp?.SetColumnName($"{tableName}_updated_at");
+                foreach (var fk in cascadeFKs)
+                    fk.DeleteBehavior = DeleteBehavior.Restrict;
+            #endregion
             
-            var deletedAtProp = entity.FindProperty(nameof(BaseEntity.DeletedAt));
-            deletedAtProp?.SetColumnName($"{tableName}_deleted_at");
+            if (!typeof(BaseEntity).IsAssignableFrom(entity.ClrType)) 
+                continue;
+            
+            #region Applyfilters
+            {
+                var parameter = Expression.Parameter(entity.ClrType, "e");
+                var deletedAtProp = Expression.Property(parameter, nameof(BaseEntity.DeletedAt));
+                var filter = Expression.Lambda(
+                    Expression.Equal(deletedAtProp, Expression.Constant(null)),
+                    parameter
+                );
+                modelBuilder.Entity(entity.ClrType).HasQueryFilter(filter);
+            }
+            #endregion
+
+            #region SetStandardColumns
+            {
+                var tableName = entity.GetTableName();
+
+                var idProp = entity.FindProperty(nameof(BaseEntity.Id));
+                idProp?.SetColumnName($"{tableName}_id");
+
+                var createdAtProp = entity.FindProperty(nameof(BaseEntity.CreatedAt));
+                createdAtProp?.SetColumnName($"{tableName}_created_at");
+
+                var updatedAtProp = entity.FindProperty(nameof(BaseEntity.UpdatedAt));
+                updatedAtProp?.SetColumnName($"{tableName}_updated_at");
+
+                var deletedAtProp = entity.FindProperty(nameof(BaseEntity.DeletedAt));
+                deletedAtProp?.SetColumnName($"{tableName}_deleted_at");
+            }
+            #endregion
         }
-        
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
@@ -92,7 +104,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .Entries()
             .Where(e => e is { Entity: BaseEntity, State: EntityState.Modified or EntityState.Added or EntityState.Deleted });
 
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         foreach (var entry in entries)
         {
@@ -101,6 +113,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             switch (entry.State)
             {
                 case EntityState.Added:
+                    entity.CreatedAt = now;
+                    entity.UpdatedAt = now;
+                    break;
                 case EntityState.Modified:
                     entity.UpdatedAt = now;
                     break;
